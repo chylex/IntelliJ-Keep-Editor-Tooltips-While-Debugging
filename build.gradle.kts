@@ -1,10 +1,8 @@
 @file:Suppress("ConvertLambdaToReference")
 
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
-	kotlin("jvm") version "1.6.10"
-	id("org.jetbrains.intellij") version "1.5.2"
+	kotlin("jvm")
+	id("org.jetbrains.intellij.platform")
 }
 
 group = "com.chylex.intellij.keeppopupswhiledebugging"
@@ -12,24 +10,45 @@ version = "1.1"
 
 repositories {
 	mavenCentral()
+	
+	intellijPlatform {
+		defaultRepositories()
+	}
 }
 
-intellij {
-	version.set("2022.1")
-	updateSinceUntilBuild.set(false)
+dependencies {
+	intellijPlatform {
+		intellijIdeaUltimate("2022.3")
+	}
 }
 
-tasks.patchPluginXml {
-	sinceBuild.set("202")
+intellijPlatform {
+	pluginConfiguration {
+		ideaVersion {
+			sinceBuild.set("202")
+			untilBuild.set(provider { null })
+		}
+	}
+	
+	pluginVerification {
+		freeArgs.add("-mute")
+		freeArgs.add("TemplateWordInPluginId")
+		
+		ides {
+			recommended()
+		}
+	}
+	
+	buildSearchableOptions = false
 }
 
-tasks.buildSearchableOptions {
-	enabled = false
-}
-
-tasks.withType<KotlinCompile> {
-	kotlinOptions.jvmTarget = "11"
-	kotlinOptions.freeCompilerArgs = listOf(
-		"-Xjvm-default=enable"
-	)
+kotlin {
+	jvmToolchain(11)
+	
+	compilerOptions {
+		freeCompilerArgs = listOf(
+			"-X" + "jvm-default=all",
+			"-X" + "lambdas=indy"
+		)
+	}
 }
